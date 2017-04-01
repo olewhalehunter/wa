@@ -6,7 +6,7 @@
 (defpackage #:wa
   (:use #:cl))
 (defun image-setup ()
-  (setq quicklisp-reqs '(cl-glut))
+  (setq quicklisp-reqs '(cl-glut bordeaux-threads))
   (mapcar (lambda (x) (ql:quickload x)) quicklisp-reqs))
 
 (defclass wa-mask
@@ -19,15 +19,7 @@
   (gl:matrix-mode :projection)
   (gl:load-identity)
   (gl:ortho 0 1 0 1 -1 1)
-
-  (let ((in (open (concatenate 'string
-			       "/dev/input/by-id/" evdev-id) 
-		  :if-does-not-exist nil)))
-    (when in
-      (format t "~a~%" (read-char in))
-      (format t "~a~%" (read-char in))   
-      (close in)
-      (print "~wa"))))
+  )
 (defmethod glut:display ((w wa-mask))
   (gl:clear :color-buffer)
   (gl:color .8 0 1)
@@ -38,15 +30,31 @@
     (gl:vertex 0.25 0.75 0))
   (gl:flush))
 
-(setq evdev-id "usb-WACOM_CTE-440-U_V4.0-3-mouse")  
+(setq evdev-id "usb-WACOM_CTE-440-U_V4.0-3-mouse")
 
-(defun wa () 
+(defun process-wacom-stream (in)
+  (loop for value = (read-char in nil)
+     while value do 
+       (format t "~a~%" value)))
+
+(defun handle-wacom ()
+  (let ((in (open (concatenate 'string
+			       "/dev/input/by-id/" evdev-id) 
+		  :if-does-not-exist nil)))
+    (when in
+      (process-wacom-stream in)
+      (close in))))
+
+(defun wa ()
+  (bordeaux-threads:make-thread
+		'handle-wacom :name 
+		"wa-wacom-process")
   (glut:display-window (make-instance 'wa-mask))   
   )
 
-(defun compile-wa ()
+(defun compile-wa-image ()
   (cl-user::save-lisp-and-die "wa"))
-(defun compile-exec-wa ()
+(defun compile-wa-exec ()
   (cl-user::save-lisp-and-die "wa" executable t :toplevel 'wa::wa))
 
 
