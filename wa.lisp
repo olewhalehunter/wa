@@ -1,12 +1,10 @@
 
-
-;; instream processing thread
-;; wacom device values
+;; no device case
 
 (defpackage #:wa
   (:use #:cl))
 (defun image-setup ()
-  (setq quicklisp-reqs '(cl-glut bordeaux-threads))
+  (setq quicklisp-reqs '(cl-glut bordeaux-threads bit-smasher))
   (mapcar (lambda (x) (ql:quickload x)) quicklisp-reqs))
 
 (defclass wa-mask
@@ -30,20 +28,27 @@
     (gl:vertex 0.25 0.75 0))
   (gl:flush))
 
-(setq evdev-id "usb-WACOM_CTE-440-U_V4.0-3-mouse")
+
+
+(defun hex (dec)
+  (bit-smasher:hex<- dec))
 
 (defun process-wacom-stream (in)
-  (loop for value = (read-char in nil)
+  (loop for value = (read-byte in nil)
      while value do 
-       (format t "~a~%" value)))
+       (format t "~a~%" (bit-smasher:bits<- value))
+       (format t "~%")))
 
 (defun handle-wacom ()
   (let ((in (open (concatenate 'string
 			       "/dev/input/by-id/" evdev-id) 
+		  :element-type '(unsigned-byte 8)
 		  :if-does-not-exist nil)))
     (when in
       (process-wacom-stream in)
       (close in))))
+
+(setq evdev-id "usb-WACOM_CTE-440-U_V4.0-3-mouse")
 
 (defun wa ()
   (bordeaux-threads:make-thread
