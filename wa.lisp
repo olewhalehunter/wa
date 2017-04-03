@@ -1,8 +1,7 @@
 
-;; no device case
-
 (defpackage #:wa
   (:use #:cl))
+(declaim (sb-ext:muffle-conditions cl:warning))
 (defun image-setup ()
   (setq quicklisp-reqs '(cl-glut bordeaux-threads bit-smasher))
   (mapcar (lambda (x) (ql:quickload x)) quicklisp-reqs))
@@ -31,15 +30,21 @@
 
 (setq evdev-id "usb-WACOM_CTE-440-U_V4.0-3-mouse"
    evdev-stream '()
-   calibrate nil)
+   calibrate t)
 
 (defun calibrate-output-stream ()
-  (format t "~a~%" (bit-smasher:bits<- byte)))
+  (loop for byte = (read-byte evdev-stream nil)
+     while byte do    
+       (format t "~a~%" (bit-smasher:bits<- byte))
+       (format t "~%")
+       (finish-output t)
+))
 
 (defun process-wacom-stream ()
-  (loop for byte = (read-byte wacom-stream nil)
-     while byte do        
-       (format t "~%")))
+  (loop for byte = (read-byte evdev-stream nil)
+     while byte do     
+       (format t "~a~%" (bit-smasher:bits<- byte))
+       (format t "wawa~%")))
 
 (defun wa ()
   (let ((in (open (concatenate 'string
@@ -47,16 +52,15 @@
 		  :element-type '(unsigned-byte 8)
 		  :if-does-not-exist :error)))
     (when in
-      (setq wacom-stream in)
-      (glut:display-window (make-instance 'wa-mask)) 
-
+      (setq evdev-stream in)       
+      (format t "!!!!~%")
+      (finish-output t)
       (if calibrate
 	  (bordeaux-threads:make-thread
-	   'process-wacom-stream :name
-	   "wacom-stream-process")
+	   'calibrate-output-stream :name "calibrate-stream-process")
 	  (bordeaux-threads:make-thread
-	   'calibrate-output-stream :name
-	   "calibrate-stream-process"))
+	   'process-wacom-stream :name "wacom-stream-process"))
+      (glut:display-window (make-instance 'wa-mask))
       (close in)))
   )
 
