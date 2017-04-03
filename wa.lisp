@@ -55,8 +55,8 @@
 	   'process-wacom-stream :name
 	   "wacom-stream-process")
 	  (bordeaux-threads:make-thread
-	   'diagnose-wacom-stream :name
-	   "wacom-stream-process"))
+	   'calibrate-output-stream :name
+	   "calibrate-stream-process"))
       (close in)))
   )
 
