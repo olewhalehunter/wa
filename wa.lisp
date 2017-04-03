@@ -18,9 +18,10 @@
   (gl:load-identity)
   (gl:ortho 0 1 0 1 -1 1)
   )
+
 (defmethod glut:display ((w wa-mask))
   (gl:clear :color-buffer)
-  (gl:color .8 0 1)
+  (gl:color .7 0 1)
   (gl:with-primitive :polygon
     (gl:vertex 0.25 0.25 0)
     (gl:vertex 0.75 0.25 0)
@@ -28,33 +29,35 @@
     (gl:vertex 0.25 0.75 0))
   (gl:flush))
 
+(setq evdev-id "usb-WACOM_CTE-440-U_V4.0-3-mouse"
+   evdev-stream '()
+   calibrate nil)
 
+(defun calibrate-output-stream ()
+  (format t "~a~%" (bit-smasher:bits<- byte)))
 
-(defun hex (dec)
-  (bit-smasher:hex<- dec))
-
-(defun process-wacom-stream (in)
-  (loop for value = (read-byte in nil)
-     while value do 
-       (format t "~a~%" (bit-smasher:bits<- value))
+(defun process-wacom-stream ()
+  (loop for byte = (read-byte wacom-stream nil)
+     while byte do        
        (format t "~%")))
 
-(defun handle-wacom ()
+(defun wa ()
   (let ((in (open (concatenate 'string
 			       "/dev/input/by-id/" evdev-id) 
 		  :element-type '(unsigned-byte 8)
-		  :if-does-not-exist nil)))
+		  :if-does-not-exist :error)))
     (when in
-      (process-wacom-stream in)
-      (close in))))
+      (setq wacom-stream in)
+      (glut:display-window (make-instance 'wa-mask)) 
 
-(setq evdev-id "usb-WACOM_CTE-440-U_V4.0-3-mouse")
-
-(defun wa ()
-  (bordeaux-threads:make-thread
-		'handle-wacom :name 
-		"wa-wacom-process")
-  (glut:display-window (make-instance 'wa-mask))   
+      (if calibrate
+	  (bordeaux-threads:make-thread
+	   'process-wacom-stream :name
+	   "wacom-stream-process")
+	  (bordeaux-threads:make-thread
+	   'diagnose-wacom-stream :name
+	   "wacom-stream-process"))
+      (close in)))
   )
 
 (defun compile-wa-image ()
