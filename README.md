@@ -11,7 +11,10 @@ To calibrate a device bytestream, connect the device, check for the id in /dev/i
 
 * [working with evdev tools](https://www.freedesktop.org/wiki/Evemu/)
 * [kernel doc on hardware input event codes](https://www.kernel.org/doc/Documentation/input/event-codes.txt)
+* [kernel input source (input event structs)](https://github.com/torvalds/linux/blob/master/include/uapi/linux/input.h)
 
 currently supported devices:
 * Wacom CTE-440
 
+
+thanks to (jtgans)[https://github.com/jtgans/] for [cl-evdev](https://github.com/jtgans/cl-evdev)
