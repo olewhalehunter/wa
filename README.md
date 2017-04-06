@@ -17,4 +17,4 @@ currently supported devices:
 * Wacom CTE-440
 
 
-thanks to [jtgans](https://github.com/jtgans/) for [cl-evdev](https://github.com/jtgans/cl-evdev), the [fork with wacom support added is here](https://github.com/jtgans/cl-evdev)
+thanks to [jtgans](https://github.com/jtgans/) for [cl-evdev](https://github.com/jtgans/cl-evdev), the [fork with wacom support added is here](https://github.com/olewhalehunter/cl-evdev)
