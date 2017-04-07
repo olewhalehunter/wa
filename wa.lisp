@@ -102,7 +102,7 @@
 (defun clear-grid (size)
   (setq grid (make-array (list size size)
 		    :initial-element '(0 0 0)))
-  (setf (aref grid 10 10) '(1 0 1))
+  ;; (setf (aref grid 10 10) '(1 0 1))
   )
 (setq grid-size 100
    grid (clear-grid grid-size))
