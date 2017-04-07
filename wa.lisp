@@ -14,9 +14,6 @@
   (asdf:load-system 'cl-evdev)
   )
 
-;; (code-char 65)
-;; (code-char 97)
-
 (defun get-string-picto ()
   
 )
@@ -30,8 +27,7 @@
 
 (defun handle-pen (event)
   (with-slots (value type) event
-    (let ((axis (cadr type)))
-      
+    (let ((axis (cadr type)))      
       (cond ((equal axis 'ABS_PRESSURE) ;; Z?
 	     (setq pressure value))
 	    ((equal axis 'ABS_X)
@@ -139,7 +135,7 @@
 		  (* factor (+ 1 x)) (* factor y) 0
 		  (* factor (+ 1 x)) (* factor (+ 1 y)) 0
 		  (* factor x) (* factor (+ 1 y)) 0)
-	    ))  
+	    ))
   (gl:flush))
 
 (defun wa ()
