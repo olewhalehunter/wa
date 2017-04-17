@@ -18,3 +18,21 @@ currently supported devices:
 
 
 thanks to [jtgans](https://github.com/jtgans/) for [cl-evdev](https://github.com/jtgans/cl-evdev), the [fork with wacom support added is here](https://github.com/olewhalehunter/cl-evdev)
+
+
+# To Do
+
+* fullscreen
+* scaling compensation
+* stroke smoothing / better signal processing
+* lisp repl entry bootstrap
+* -> save to image
+* -> isolate "minimalist" sexps
+* -> (signal processing parametric structs?)
+* -> strokes to edit function entry macros
+* -> view / navigate lisp image
+* userspace binds
+* gl primitive compression / optm
+* large scale + sector update
+* fluid computation
+* CA material reaction, water/dye deposition
