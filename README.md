@@ -2,6 +2,7 @@
 # ワ Wa
 
 Wacom strokes through evdev over userland
+realtime (up to 200/ps) tablet controller device for programs or systems
 
 * keyboardless environment concept
 * accessibility driver for keyboard-impaired
