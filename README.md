@@ -2,7 +2,13 @@
 # ワ Wa
 
 Wacom strokes through evdev over userland
-realtime (up to 200/ps) tablet controller device for programs or systems
+realtime tablet controller device for programs or systems
+
+# Install
+(LOAD "wa.lisp")
+(WA::SET-DEVICE "/dev/input/by-id/usb-WACOM_CTE-440-U_V4.0-3-mouse")
+(WA::WA)
+(WA::COMPILE-WA-IMAGE) 
 
 * keyboardless environment concept
 * accessibility driver for keyboard-impaired

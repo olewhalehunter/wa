@@ -1,6 +1,8 @@
+(in-package :wa)
+
 (defun debug-raw-evdev ()
   (with-open-file
-      (stream  "/dev/input/tablet-graphire4-4x5"
+      (stream  evdev-device-file
 	       :direction :io
 	       :element-type '(unsigned-byte 8)
 	       :if-does-not-exist :error)

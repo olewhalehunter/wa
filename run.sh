@@ -1,1 +1,1 @@
-sudo sbcl --core wa --eval '(progn (load "wa.lisp") (wa))'
+sbcl --core wa --eval '(progn (load "wa.lisp") (wa))'

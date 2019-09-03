@@ -1,10 +1,21 @@
-(defpackage #:wa (:use #:cl))
-(defun image-setup ()
-  (mapcar (lambda (x) (ql:quickload x)) '(cl-glut 
-				     bordeaux-threads))
-  (push "/path/to/cl-evdev/"
-	asdf:*central-registry*)
-  (asdf:load-system 'cl-evdev))
+(defpackage :wa
+  (:use #:cl))
+(in-package :wa)
+(load "utils.lisp")
+(load "cl-event-handler/cl-event-handler.asd")
+(load "cl-evdev/cl-evdev.asd")
+(mapcar
+ #'ql:quickload
+ '(cl-glut 
+   bordeaux-threads
+   cl-event-handler
+   cl-evdev))
+
+(defparameter evdev-device-file "/dev/input/event16")
+
+(defun set-device (device-file)
+  (setq evdev-device-file device-file))
+
 (defun compile-wa-image ()
   (cl-user::save-lisp-and-die "wa"))
 (defun compile-wa-exec ()
@@ -26,49 +37,57 @@
   (set-grid (- grid-size 1) (- grid-size 1) blue)
   (set-grid (- grid-size 1) 0 blue)
   grid)
+
 (setq pressure 0.0 abs-x 0 abs-y 0
    tool-size 1 mask nil
-   grid-size 200 grid (clear-grid grid-size))
+   grid-size 300 grid (clear-grid grid-size))
 
 (defun handle-pen (event)
-  (with-slots (value type) event
+  (with-slots (cl-evdev::value cl-evdev::type) event
     (let ((axis (cadr type)))
-      (cond ((equal axis 'ABS_PRESSURE) (setq pressure value))
-	    ((equal axis 'ABS_X) (setq abs-x value))
-	    ((equal axis 'ABS_Y) (setq abs-y value)))      
-      (setq color (/ pressure 700.0))      
+      (print `(AXIS IS ,axis))
+      (cond ((equal axis 'cl-evdev::ABS_PRESSURE) (setq pressure cl-evdev::value))
+	    ((equal axis 'cl-evdev::ABS_X) (setq abs-x cl-evdev::value))
+	    ((equal axis 'cl-evdev::ABS_Y) (setq abs-y cl-evdev::value)))      
+      (setq color (/ pressure 700.0))
+      
+      (print `(ABS_X ,abs-x 'ABS_Y ,abs-y))
+      (print `(ABS_PRESSURE ,pressure))
       (if (> pressure 0)	  
        	  (set-grid  (round (* abs-x .020))	   
-		     (round (* abs-y .023))
+		     (round (* abs-y .040))
 		     (list 0 0 color)))
       (glut:post-redisplay))))
+
 (defun handle-scroll (event)
-  (with-slots (value) event
-      (if (= value 1)
+  (with-slots (cl-evdev::value) event
+      (if (= cl-evdev::value 1)
 	  (setq tool-size (+ 1 tool-size))
-	(setq tool-size (- 1 tool-size)))))
+	  (setq tool-size (- 1 tool-size)))))
+
 (defun handle-button (event)
-  (with-slots (name) event
-    (if (equal name 'BTNBACK)
+  (with-slots (cl-evdev::name) event
+    (if (equal cl-evdev::name 'BTNBACK)
 	(clear-grid grid-size))
     (with-slots (spin) mask
       (setf spin (mod (+ spin 30) 360)))))
 
 (defun process-wacom-stream ()
   (cl-evdev::with-evdev-device 
-      (in "/dev/input/wacom")
-    (cond ((typep in 'RELATIVE-EVENT)
+      (in evdev-device-file)
+    (print `(type of ,(Type-of in)))
+    (cond ((typep in 'cl-evdev::RELATIVE-EVENT)
 	   (handle-scroll in))
-	  ((typep in 'ABSOLUTE-EVENT)
+	  ((typep in 'cl-evdev::ABSOLUTE-EVENT)
 	   (handle-pen in))
-	  ((typep in 'KEYBOARD-EVENT)
+	  ((typep in 'cl-evdev::KEYBOARD-EVENT)
 	   (handle-button in))
 	  (t nil))))
 
 (defclass wa-mask (glut:window)
   ((spin :initform 0))
-  (:default-initargs :pos-x 200 :pos-y 200
-		     :width 750 :height 750
+  (:default-initargs :pos-x 0 :pos-y 0
+		     :width 2250 :height 2250
                      :mode '(:single :rgb) :title "wa"))
 
 (defmethod glut:display-window :before ((w wa-mask))
@@ -96,7 +115,7 @@
   (loop for x from 0 to (- grid-size 1) do   
        (loop for y from 0 to (- grid-size 1) do  
 	    (setq j (- grid-size (+ 1 y))
-	       factor .0048)
+	       factor .0018)
 	    (if (not (eq (grid-color x j) '(0 0 0)))		
 		(quad (* factor x) (* factor y) 0
 		      (* factor (+ 1 x)) (* factor y) 0
@@ -109,6 +128,7 @@
 (defun gl-window ()
   (setq mask (make-instance 'wa-mask))
   (glut:display-window mask))
+
 (defun wa ()
   (bordeaux-threads:make-thread
    'process-wacom-stream :name "wacom-stream-process")
